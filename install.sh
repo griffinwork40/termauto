@@ -53,9 +53,9 @@ if ! command -v termauto >/dev/null 2>&1; then
 fi
 
 # 4. Optional: prefetch the default model
-DEFAULT_MODEL="mlx-community/Qwen2.5-Coder-1.5B-Instruct-4bit"
+DEFAULT_MODEL="mlx-community/Qwen3-1.7B-4bit"
 echo
-echo "==> default model: $DEFAULT_MODEL (~900MB)"
+echo "==> default model: $DEFAULT_MODEL (~1GB)"
 read -r -p "Prefetch it now? [Y/n] " ans
 ans="${ans:-Y}"
 if [[ "$ans" =~ ^[Yy] ]]; then

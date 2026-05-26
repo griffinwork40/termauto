@@ -76,20 +76,37 @@ class InferenceEngine:
         max_tokens: int = 256,
         temperature: float = 0.4,
         top_p: float = 0.9,
+        enable_thinking: bool = False,
     ) -> str:
-        """Generate a completion. Blocks until done. Thread-safe."""
+        """Generate a completion. Blocks until done. Thread-safe.
+
+        enable_thinking: only honored by Qwen3+ chat templates. When False
+        (the default for termauto), the template emits an empty <think></think>
+        block so reasoning models skip the internal monologue. Thinking-mode
+        on a 1.7B model costs ~1.4s vs 350ms with it off, with no quality
+        gain for shell-command suggestions.
+        """
         if self._model is None:
             self.load()
 
         from mlx_lm import generate  # type: ignore
         from mlx_lm.sample_utils import make_sampler  # type: ignore
 
-        # Apply the chat template — Qwen2.5-Coder-Instruct expects this.
-        prompt = self._tokenizer.apply_chat_template(  # type: ignore[union-attr]
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
+        # Apply the chat template. enable_thinking= is a Qwen3-only kwarg;
+        # older templates raise TypeError on unknown args, so we fall back.
+        try:
+            prompt = self._tokenizer.apply_chat_template(  # type: ignore[union-attr]
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=enable_thinking,
+            )
+        except TypeError:
+            prompt = self._tokenizer.apply_chat_template(  # type: ignore[union-attr]
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
 
         sampler = make_sampler(temp=temperature, top_p=top_p)
 

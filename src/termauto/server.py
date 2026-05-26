@@ -30,6 +30,7 @@ class CompleteRequest(BaseModel):
     n_candidates: int = 5
     max_tokens: int = 256
     temperature: float = 0.4
+    enable_thinking: bool = False
 
 
 class Candidate(BaseModel):
@@ -74,6 +75,7 @@ def create_app(engine: InferenceEngine) -> FastAPI:
             messages,
             max_tokens=req.max_tokens,
             temperature=req.temperature,
+            enable_thinking=req.enable_thinking,
         )
         elapsed_ms = (time.monotonic() - t0) * 1000.0
 

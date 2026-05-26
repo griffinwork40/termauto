@@ -72,6 +72,8 @@ def restart(force: bool) -> None:
 @click.option("--recent", default=None, help="JSON array of [cmd, exit_code] pairs")
 @click.option("--temperature", default=0.4, type=float, show_default=True)
 @click.option("--max-tokens", default=256, type=int, show_default=True)
+@click.option("--thinking/--no-thinking", default=False, show_default=True,
+              help="Enable Qwen3+ reasoning mode (slower; no quality gain for shell commands).")
 @click.option("--format", "fmt", type=click.Choice(["plain", "json", "lines"]), default="lines", show_default=True,
               help="plain=human-readable, json=full response, lines=one cmd per line (for shell widget)")
 def suggest(
@@ -82,6 +84,7 @@ def suggest(
     recent: Optional[str],
     temperature: float,
     max_tokens: int,
+    thinking: bool,
     fmt: str,
 ) -> None:
     """Ask the daemon for completions. Used both by humans and by the zsh widget."""
@@ -99,6 +102,7 @@ def suggest(
         "n_candidates": n_candidates,
         "temperature": temperature,
         "max_tokens": max_tokens,
+        "enable_thinking": thinking,
     }
     if stderr_tail:
         payload["last_stderr_tail"] = stderr_tail

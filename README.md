@@ -50,7 +50,7 @@ The installer:
 1. Creates `.venv/` in the repo
 2. Installs the `termauto` package (editable)
 3. Writes a `~/.local/bin/termauto` shim onto `$PATH`
-4. Prefetches the default model (`mlx-community/Qwen2.5-Coder-1.5B-Instruct-4bit`, ~900MB)
+4. Prefetches the default model (`mlx-community/Qwen3-1.7B-4bit`, ~1GB)
 5. Appends `source <repo>/shell/termauto.zsh` to your `~/.zshrc`
 
 ---
@@ -90,11 +90,32 @@ All of these are env vars set **before** sourcing `termauto.zsh`:
 Daemon flags:
 
 ```bash
-termauto start --model mlx-community/Llama-3.2-1B-Instruct-4bit
+termauto start --model mlx-community/Qwen2.5-Coder-1.5B-Instruct-4bit  # code-tuned alt
+termauto start --model mlx-community/Qwen3-0.6B-4bit                    # smaller/faster
 termauto start --port 8765 --host 127.0.0.1
 termauto start --foreground          # don't daemonize; useful for debugging
 termauto start --no-warmup           # skip warmup generation
 ```
+
+### Model choice
+
+Default is `mlx-community/Qwen3-1.7B-4bit` (~1GB, ~600ms/completion). Qwen3 is
+a reasoning model; termauto disables `<think>` mode by default (set
+`--thinking` on `suggest` to re-enable; not recommended for shell use — adds
+~1.4s/request with no quality gain).
+
+Tested alternatives:
+
+| Model | Size | Latency | Notes |
+|---|---|---|---|
+| `Qwen3-1.7B-4bit` (default) | ~1GB | ~600ms | Newer generation, good diversity |
+| `Qwen2.5-Coder-1.5B-Instruct-4bit` | ~900MB | ~580ms | Code-tuned, reliable 3-5 candidates |
+| `Qwen3-0.6B-4bit` | ~400MB | ~300ms | Faster but quality drops noticeably |
+
+Qwen3.6 (the latest Qwen series) has no small variants — the floor is 27B
+dense or 35B-A3B MoE, both too large for keystroke latency. If you have
+enough RAM (~20GB free), `Qwen3-30B-A3B-4bit` is the highest-quality option
+that's still feasible (3B active params keeps latency reasonable).
 
 ---
 
