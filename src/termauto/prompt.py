@@ -98,6 +98,56 @@ def build_messages(ctx: CompletionContext) -> list[dict[str, str]]:
     ]
 
 
+# ---------------------------------------------------------------------------
+# Inline ghost-text mode
+# ---------------------------------------------------------------------------
+# Different prompt shape from the panel: ONE candidate, formatted as a full
+# command line that starts with the user's buffer (so zsh-autosuggestions can
+# verify the prefix match and render only the suffix as grey ghost text).
+
+INLINE_SYSTEM_PROMPT = """You are termauto, a local shell-command inline completion assistant.
+
+The user is typing a shell command. Given their current buffer and shell
+context, output a SINGLE complete command that the user most likely intends.
+
+Output rules:
+- Output ONLY the command. One line. No preamble, no markdown, no numbering,
+  no explanation, no code fences, no surrounding quotes.
+- The output MUST start with the user's literal buffer text (so it can be
+  rendered as inline ghost text). Do not output just the suffix.
+- Stop at the end of the command. Do not chain a second command with `;`,
+  `&&`, `||`, or `|` unless the buffer itself already started one.
+- If the buffer is already a complete and reasonable command, repeat it verbatim.
+- Never produce destructive defaults: `rm -rf /`, `rm -rf ~`, `sudo rm -rf`,
+  `git push --force`, `git reset --hard`, `dd of=/dev/...`, `mkfs.*`, fork bombs,
+  `chmod -R 777 /`. If asked toward one, output just the buffer verbatim.
+"""
+
+INLINE_EXAMPLE_USER = """cwd: /Users/alice/projects/api
+recent commands:
+  $ git status            (exit 0)
+buffer: git checkout -b feature/"""
+
+INLINE_EXAMPLE_ASSISTANT = "git checkout -b feature/user-auth"
+
+
+def build_inline_messages(ctx: CompletionContext) -> list[dict[str, str]]:
+    """Build the chat-completion message list for inline single-candidate mode.
+
+    Differs from `build_messages` in three ways:
+    - Different system prompt (single command, must include buffer prefix)
+    - Different one-shot example (shows the "echo back the prefix" pattern)
+    - Uses the same CompletionContext.render_user_message() so the user-side
+      payload format stays identical between modes
+    """
+    return [
+        {"role": "system", "content": INLINE_SYSTEM_PROMPT},
+        {"role": "user", "content": INLINE_EXAMPLE_USER},
+        {"role": "assistant", "content": INLINE_EXAMPLE_ASSISTANT},
+        {"role": "user", "content": ctx.render_user_message()},
+    ]
+
+
 # Defense in depth: even though the system prompt forbids these, parse-time
 # filtering catches model mistakes. Patterns are intentionally narrow — we
 # only block clearly destructive defaults, not anything containing the word.
@@ -125,6 +175,13 @@ def _is_dangerous(cmd: str) -> bool:
     if not _DANGEROUS_RE:
         _DANGEROUS_RE = [re.compile(p) for p in DANGEROUS_PATTERNS]
     return any(rx.search(cmd) for rx in _DANGEROUS_RE)
+
+
+# Public alias — used by the inline endpoint to validate completions before
+# returning them. Kept as a thin wrapper so the predicate is one source of
+# truth for both panel parsing (parse_candidates) and ghost text.
+def is_dangerous(cmd: str) -> bool:
+    return _is_dangerous(cmd)
 
 
 def parse_candidates(raw_output: str) -> list[tuple[str, Optional[str]]]:

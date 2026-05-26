@@ -74,6 +74,78 @@ termauto suggest --format lines "ls "       # one cmd per line — same format t
 
 ---
 
+## Ghost mode (inline as-you-type)
+
+Opt-in single-suggestion ghost text — VS Code / Copilot style — rendered through
+[`zsh-autosuggestions`](https://github.com/zsh-users/zsh-autosuggestions). Coexists
+with the Ctrl-Space panel; one binds a key, the other plugs into the autosuggest
+hook chain.
+
+**Install:**
+
+```bash
+# 1. Install zsh-autosuggestions if you don't have it
+brew install zsh-autosuggestions
+
+# 2. In ~/.zshrc, after sourcing zsh-autosuggestions, source the strategy
+echo 'source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh' >> ~/.zshrc
+echo 'source /path/to/termauto/shell/termauto_ghost.zsh' >> ~/.zshrc
+
+# 3. Reload
+exec zsh
+```
+
+That's it. As you type, single-suggestion greyed text appears past the cursor.
+`→` (or End) accepts the visible suggestion; `Tab` accepts it; just keep typing
+to ignore.
+
+**How it composes with history:**
+
+`termauto_ghost.zsh` sets `ZSH_AUTOSUGGEST_STRATEGY=(history termauto_inline)`.
+History matches short-circuit first — the LLM only fires when there's no
+matching history entry. This keeps the daemon idle most of the time and makes
+the experience feel snappy because the common case is 0ms.
+
+**Safety:**
+
+The same dangerous-command deny-list that protects the panel (rm -rf /, sudo rm
+-rf, git push --force without --force-with-lease, git reset --hard, dd of=/dev/disk*,
+mkfs.*, fork bombs, chmod -R 777 /, raw block device redirects) is enforced
+server-side before any ghost text is returned. Dangerous suggestions are dropped
+silently with `reason: "dangerous"` in the daemon log.
+
+**Config (env vars, set before sourcing `termauto_ghost.zsh`):**
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `TERMAUTO_GHOST_HOST` | `127.0.0.1` | daemon host |
+| `TERMAUTO_GHOST_PORT` | `8765` | daemon port |
+| `TERMAUTO_GHOST_TIMEOUT_MS` | `400` | hard ceiling on daemon round-trip |
+| `TERMAUTO_GHOST_MIN_CHARS` | `2` | don't fire on 1-char buffers |
+| `TERMAUTO_GHOST_MAX_TOKENS` | `40` | generation cap (one shell command fits well under this) |
+| `TERMAUTO_GHOST_DISABLED` | `0` | set to `1` to silence ghost mode without unsourcing |
+
+**Toggle without unsourcing:**
+
+```bash
+termauto-ghost-off   # alias: TERMAUTO_GHOST_DISABLED=1
+termauto-ghost-on    # alias: TERMAUTO_GHOST_DISABLED=0
+```
+
+**Latency expectations on M-series:**
+
+| Model | Full-response wall time | Notes |
+|---|---|---|
+| `Qwen3-1.7B-4bit` (default) | ~250-400ms | Default; feels fast in practice |
+| `Qwen3-0.6B-4bit` | ~120-200ms | Recommended if ghost is your primary mode |
+| `Qwen2.5-Coder-1.5B-Instruct-4bit` | ~250-350ms | Better at code-shaped continuations |
+
+The strategy aborts after `TERMAUTO_GHOST_TIMEOUT_MS` regardless of model — if
+the daemon is slow, the suggestion silently doesn't appear rather than hanging
+your prompt.
+
+---
+
 ## Config
 
 All of these are env vars set **before** sourcing `termauto.zsh`:
@@ -124,18 +196,24 @@ that's still feasible (3B active params keeps latency reasonable).
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                          your zsh                            │
-│   ┌──────────────────────┐                                   │
-│   │ termauto.zsh widget  │  ← Ctrl-Space binding             │
-│   │   ↓ POSIX exec       │                                   │
-│   │   termauto suggest …  │                                   │
-│   └──────────────────────┘                                   │
-└──────────────│──────────────────────────────────────────────┘
-               │ HTTP localhost:8765
-               ▼
+│   ┌──────────────────────┐    ┌────────────────────────────┐ │
+│   │ termauto.zsh widget  │    │ termauto_ghost.zsh strategy│ │
+│   │   Ctrl-Space → panel │    │   typing → autosuggest hook│ │
+│   │   ↓ POSIX exec       │    │   ↓ curl                   │ │
+│   │   termauto suggest…  │    │   POST /suggest_inline     │ │
+│   └──────────────────────┘    └────────────────────────────┘ │
+└─────────────│──────────────────────────│─────────────────────┘
+              │ HTTP localhost:8765      │
+              ▼                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      termauto daemon                         │
-│  FastAPI /complete  →  prompt.py  →  inference.py            │
-│                                       └─ mlx-lm (warm)       │
+│  FastAPI /complete         → build_messages       (panel)    │
+│          /suggest_inline   → build_inline_messages (ghost)   │
+│                              ↓                               │
+│                            inference.py                      │
+│                              ├─ generate()       (blocking)  │
+│                              ├─ generate_stream() (streaming)│
+│                              └─ mlx-lm (warm)                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -154,24 +232,27 @@ termauto/
 ├── install.sh
 ├── pyproject.toml
 ├── shell/
-│   └── termauto.zsh           # the zle widget + precmd hook
+│   ├── termauto.zsh           # the zle widget + precmd hook (Ctrl-Space panel)
+│   └── termauto_ghost.zsh     # zsh-autosuggestions strategy (inline ghost text)
 └── src/termauto/
     ├── cli.py                 # `termauto` CLI entry point
     ├── daemon.py              # start/stop/status + foreground server
-    ├── server.py              # FastAPI app
-    ├── inference.py           # mlx-lm wrapper, model held warm
-    └── prompt.py              # prompt template + candidate parsing
+    ├── server.py              # FastAPI app (/complete, /suggest_inline, /healthz, /warmup)
+    ├── inference.py           # mlx-lm wrapper: generate() + generate_stream(), model held warm
+    └── prompt.py              # prompt templates: panel (numbered) + inline (single-line)
 ```
 
 ---
 
 ## Status
 
-v0.1 — works, rough edges expected. Things on the immediate roadmap:
+v0.2 — works, rough edges expected. Things on the immediate roadmap:
 
 - `preexec` capture of stderr tail (currently we send exit codes only)
 - Smarter candidate ranking (post-process: dedupe, score by buffer-prefix match)
-- `--ghost` mode for inline single-suggestion rendering once trust is established
+- ~~`--ghost` mode for inline single-suggestion rendering~~ — shipped via `termauto_ghost.zsh`
+- Prompt-cache reuse across requests for sub-150ms TTFT (currently fresh cache per call)
+- Rolling top-1 accuracy gate (suppress ghost text until model accuracy ≥ threshold on user's corpus)
 - bash + fish shell hooks
 - LaunchAgent install for daemon auto-start
 
