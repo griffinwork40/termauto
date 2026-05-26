@@ -179,4 +179,8 @@ v0.1 — works, rough edges expected. Things on the immediate roadmap:
 
 ## License
 
-AGPL-3.0 (same as cotabby).
+MIT — see [LICENSE](./LICENSE).
+
+Inspired by [cotabby](https://github.com/FuJacob/cotabby) (AGPL-3.0). termauto
+shares no source code with cotabby; the design pattern (local-first LLM,
+ghost/panel completion, on-device inference) was the inspiration.
