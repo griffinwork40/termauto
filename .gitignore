@@ -20,3 +20,6 @@ build/
 *.pid
 *.sock
 *.log
+node_modules/
+package-lock.json
+package.json
