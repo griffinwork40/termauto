@@ -132,6 +132,40 @@ termauto-ghost-off   # alias: TERMAUTO_GHOST_DISABLED=1
 termauto-ghost-on    # alias: TERMAUTO_GHOST_DISABLED=0
 ```
 
+## Use it inside your own CLI
+
+Ghost text isn't zsh-only — any CLI that owns its input loop can render
+termauto's suggestions through whatever ghost-text contract its UI framework
+already provides. The first non-zsh integration ships as a copy-paste example,
+not a package, because the SDK shape isn't stable yet.
+
+**prompt_toolkit** (ipython, ptpython, click-repl, pgcli, mycli, glances, ...):
+
+```python
+# Copy examples/prompt_toolkit/termauto_suggest.py into your project, then:
+from prompt_toolkit import PromptSession
+from termauto_suggest import TermautoAutoSuggest
+
+session = PromptSession(auto_suggest=TermautoAutoSuggest())
+```
+
+See [`examples/prompt_toolkit/README.md`](examples/prompt_toolkit/README.md)
+for the full walkthrough — including the prefix-match safety invariant, the
+async-thread offload that keeps the UI responsive, and the one-warning
+daemon-down behavior.
+
+```bash
+# Planned (not yet published):
+pip install termauto-prompt-toolkit
+```
+
+**Other frameworks** (bubbletea, ink, ratatui, textual, ...): no
+example yet. The integration recipe is in the prompt_toolkit README — please
+open an issue if you adapt it to another framework so the SDK shape can grow
+from real integrator pain rather than speculative API design.
+
+---
+
 **Latency expectations on M-series:**
 
 | Model | Full-response wall time | Notes |
