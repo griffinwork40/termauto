@@ -125,6 +125,93 @@ class InferenceEngine:
         log.info("generated %d chars in %.2fs", len(output), elapsed)
         return _strip_stop_tokens(output)
 
+    def generate_stream(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_tokens: int = 40,
+        temperature: float = 0.2,
+        top_p: float = 0.9,
+        stop_on_newline: bool = True,
+        lock_timeout: float = 0.2,
+    ):
+        """Yield generated text chunks incrementally. Generator-shaped.
+
+        Designed for the ghost-text inline path:
+        - Short max_tokens (one shell command line is rarely >40 tokens).
+        - Lower temperature than panel mode — we want the single best
+          continuation, not diversity.
+        - Early-stop on newline so we don't pay for tokens past the end of
+          the first line.
+        - Graceful degradation under lock contention: if the panel path is
+          holding the inference lock when a ghost request arrives, this
+          yields nothing rather than blocking the caller for 2-5 seconds.
+
+        Each yielded value is the *delta* string for that step (i.e., the
+        new characters since the previous yield), not the cumulative output.
+        Callers accumulate by string concatenation.
+        """
+        if self._model is None:
+            self.load()
+
+        from mlx_lm import stream_generate  # type: ignore
+        from mlx_lm.sample_utils import make_sampler  # type: ignore
+
+        # Apply chat template — same fallback dance as generate() above for
+        # tokenizers that don't accept enable_thinking=.
+        try:
+            prompt = self._tokenizer.apply_chat_template(  # type: ignore[union-attr]
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=False,
+            )
+        except TypeError:
+            prompt = self._tokenizer.apply_chat_template(  # type: ignore[union-attr]
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+
+        sampler = make_sampler(temp=temperature, top_p=top_p)
+
+        # If the panel path is mid-generation, the lock can be held for
+        # several seconds. Ghost requests must degrade gracefully —
+        # disappearing ghost text is acceptable UX; a 2-second prompt
+        # freeze is not. Returning yields nothing.
+        if not self._lock.acquire(timeout=lock_timeout):
+            log.info("ghost: lock contention, yielding nothing")
+            return
+
+        try:
+            t0 = time.monotonic()
+            for resp in stream_generate(
+                self._model,
+                self._tokenizer,
+                prompt,
+                max_tokens=max_tokens,
+                sampler=sampler,
+            ):
+                chunk = resp.text
+                if not chunk:
+                    continue
+                # Stop-token leak protection — same set the blocking path uses.
+                stop_hit = False
+                for tok in _STOP_TOKENS:
+                    if tok in chunk:
+                        chunk = chunk.split(tok, 1)[0]
+                        stop_hit = True
+                        break
+                if chunk:
+                    yield chunk
+                if stop_hit:
+                    break
+                if stop_on_newline and "\n" in chunk:
+                    break
+            log.info("ghost stream completed in %.3fs", time.monotonic() - t0)
+        finally:
+            self._lock.release()
+
     def warmup(self) -> None:
         """Run one tiny generation so the first real request is hot."""
         if self._model is None:
