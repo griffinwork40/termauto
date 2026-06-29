@@ -1,288 +1,449 @@
-/* termauto landing page — style.css */
+/* termauto landing page — style.css
+ * Dark, terminal-native, single warm-amber accent. Zero build step.
+ */
 
 /* ---- Custom properties -------------------------------------------------- */
 :root {
-  --bg:       #0d0d0d;
-  --fg:       #e8e8e8;
-  --muted:    #888888;
-  --accent:   #c8b830;
-  --code-bg:  #171717;
-  --border:   #2a2a2a;
+  --bg:          #0a0a0b;
+  --bg-soft:     #111113;
+  --code-bg:     #101012;
+  --fg:          #e9e9ea;
+  --muted:       #8c8c90;
+  --faint:       #5b5b60;
+  --accent:      #e8c24a;   /* warm amber-gold */
+  --accent-dim:  #b8973a;
+  --accent-soft: rgba(232, 194, 74, 0.10);
+  --border:      #222226;
+  --border-soft: #1a1a1d;
+  --danger:      #d98a6a;
+
+  --mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, 'SF Mono', 'Menlo', monospace;
+  --measure: 66ch;
+  --page: 800px;
 }
 
 /* ---- Reset / base -------------------------------------------------------- */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-  font-size: 15px;
-}
+html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
-  line-height: 1.7;
-  padding: 0 2rem;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  line-height: 1.72;
   -webkit-font-smoothing: antialiased;
-}
-
-/* ---- Layout -------------------------------------------------------------- */
-main {
-  max-width: 68ch;
-  margin: 0 auto;
-  padding: 2rem 0 4rem;
-}
-
-section {
-  margin-bottom: 3.5rem;
-}
-
-/* ---- Typography ---------------------------------------------------------- */
-h1 {
-  font-size: 2.2rem;
-  color: var(--fg);
-  letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-h2 {
-  font-size: 1.2rem;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 1.25rem;
-  font-weight: 600;
-}
-
-p {
-  margin-bottom: 1rem;
-  max-width: 60ch;
-}
-
-ul {
-  margin: 0.5rem 0 1rem 1.5rem;
-}
-
-li {
-  margin-bottom: 0.35rem;
-}
-
-a {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-code {
-  background: var(--code-bg);
-  padding: 0.15em 0.4em;
-  border-radius: 2px;
-  font-size: 0.9em;
-  color: var(--fg);
-  font-family: inherit;
-}
-
-/* ---- Terminal demo ------------------------------------------------------- */
-#demo-terminal {
-  background: var(--code-bg);
-  border-left: 3px solid var(--accent);
-  padding: 1.25rem 1.5rem;
-  margin: 1.5rem 0 2rem;
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  min-height: 7rem;
-  overflow: hidden;
+  text-rendering: optimizeLegibility;
   position: relative;
-  white-space: pre;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-.demo-line {
-  display: block;
+/* Subtle depth: a single warm glow at the top, faint scanlines over all.
+   One hue, very low opacity — atmosphere, not a rainbow gradient. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(900px 480px at 18% -8%, rgba(232,194,74,0.07), transparent 62%),
+    radial-gradient(700px 500px at 100% 0%, rgba(232,194,74,0.035), transparent 60%);
+  pointer-events: none;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.013) 0px,
+    rgba(255,255,255,0.013) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
 }
 
-.demo-prompt {
-  color: var(--muted);
+/* ---- Shared width ------------------------------------------------------- */
+.wrap {
+  width: 100%;
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 1.75rem;
 }
 
-.demo-input {
+/* ---- Top bar ------------------------------------------------------------ */
+.topbar {
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(10,10,11,0.72);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.25rem;
+}
+.brand {
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--fg);
 }
+.brand .brand-dot { color: var(--accent); }
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+}
+.nav-links a { color: var(--muted); }
+.nav-links a:hover { color: var(--accent); }
 
-.demo-keypress {
+/* ---- Links -------------------------------------------------------------- */
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Sections ----------------------------------------------------------- */
+main { padding: 0 0 5rem; }
+.section { padding: 4rem 0 0; }
+
+/* Editorial section label: small uppercase accent tag + hairline rule. */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--accent);
-  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+.section-label::before { content: "//"; color: var(--accent-dim); }
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border), transparent);
 }
 
-.demo-thinking {
-  color: var(--muted);
-  font-style: italic;
-}
+p { margin-bottom: 1.05rem; max-width: var(--measure); color: #cfcfd2; }
+p strong { color: var(--fg); font-weight: 700; }
+p em { color: var(--accent); font-style: normal; }
 
-.demo-candidate {
+/* ---- Hero --------------------------------------------------------------- */
+.hero { padding: 4.5rem 0 2.5rem; }
+.hero-wordmark {
+  font-size: clamp(3.2rem, 11vw, 5.75rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
   color: var(--fg);
-  opacity: 0.55;
+  display: inline-flex;
+  align-items: baseline;
 }
-
-.demo-legend {
-  color: var(--muted);
-  opacity: 0.4;
-  font-size: 0.8rem;
-}
-
-.demo-accepted {
-  color: var(--fg);
-  font-weight: 600;
-}
-
-.demo-cursor {
+.hero-wordmark .cursor {
   display: inline-block;
-  width: 0.55em;
-  height: 1em;
-  background: var(--fg);
-  vertical-align: text-bottom;
-  animation: blink 1s step-end infinite;
+  width: 0.46em;
+  height: 0.92em;
+  margin-left: 0.12em;
+  background: var(--accent);
+  transform: translateY(0.04em);
+  animation: blink 1.1s step-end infinite;
 }
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+.hero-tag {
+  font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+  line-height: 1.55;
+  color: var(--fg);
+  max-width: 30ch;
+  margin: 1.6rem 0 0.4rem;
+  font-weight: 500;
 }
+.hero-sub {
+  color: var(--muted);
+  max-width: 52ch;
+  margin-bottom: 1.6rem;
+}
+.hero-sub .nodial { color: var(--accent); font-weight: 600; }
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  font-size: 0.92rem;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: #1a1606;
+  font-weight: 700;
+  padding: 0.6rem 1.1rem;
+  border-radius: 4px;
+  border: 1px solid var(--accent);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s;
+}
+.btn-primary:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -8px rgba(232,194,74,0.45);
+  background: #f0cf5e;
+}
+.link-ghost { color: var(--muted); }
+.link-ghost:hover { color: var(--accent); }
 
-/* ---- Pre / architecture diagram ----------------------------------------- */
-pre {
+/* ---- Terminal window ---------------------------------------------------- */
+.terminal {
+  margin-top: 2.5rem;
   background: var(--code-bg);
   border: 1px solid var(--border);
-  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.03) inset,
+    0 30px 80px -28px rgba(0,0,0,0.85),
+    0 0 70px -30px rgba(232,194,74,0.18);
+}
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.95rem;
+  background: #161618;
+  border-bottom: 1px solid var(--border);
+}
+.terminal-bar .dot {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 50%;
+  background: #36363a;
+}
+.terminal-bar .dot:nth-child(1) { background: #3b3b40; }
+.terminal-bar .dot:nth-child(2) { background: #343438; }
+.terminal-bar .dot:nth-child(3) { background: #2e2e32; }
+.terminal-title {
+  margin-left: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--faint);
+  letter-spacing: 0.02em;
+}
+.terminal-title .acc { color: var(--accent-dim); }
+
+#demo-terminal {
+  padding: 1.4rem 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  line-height: 1.62;
+  min-height: 9.5rem;
   overflow-x: auto;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  margin: 1rem 0;
   white-space: pre;
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
 }
 
-/* ---- Latency table ------------------------------------------------------- */
+/* demo states */
+.demo-prompt   { color: var(--accent); }
+.demo-input    { color: var(--fg); }
+.demo-keycap {
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 3px;
+  padding: 0 0.35em;
+  font-size: 0.82em;
+  margin-left: 0.15em;
+}
+.demo-thinking { color: var(--muted); font-style: italic; }
+.demo-candidate { color: #b9b9bd; }
+.demo-candidate .num { color: var(--faint); }
+.demo-candidate.sel {
+  color: #1a1606;
+  background: var(--accent);
+  border-radius: 3px;
+}
+.demo-candidate.sel .num { color: rgba(26,22,6,0.6); }
+.demo-legend { color: var(--faint); font-size: 0.86em; }
+.demo-accepted { color: var(--fg); font-weight: 700; }
+.demo-accepted .ok { color: var(--accent); }
+.demo-cursor {
+  display: inline-block;
+  width: 0.52em;
+  height: 1.02em;
+  background: var(--fg);
+  vertical-align: text-bottom;
+  animation: blink 1.1s step-end infinite;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ---- Prose callout (safety) -------------------------------------------- */
+.lede { font-size: 1.06rem; color: var(--fg); }
+.pull {
+  border-left: 2px solid var(--accent);
+  padding: 0.1rem 0 0.1rem 1.1rem;
+  margin: 1.3rem 0;
+  color: var(--fg);
+  max-width: var(--measure);
+}
+.pull code { background: none; padding: 0; color: var(--accent); font-weight: 600; }
+
+/* split panel for generation vs commitment */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.6rem 0 0.5rem;
+}
+.split .cell {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.1rem 1.2rem;
+  background: var(--bg-soft);
+}
+.split .cell h3 {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.55rem;
+  font-weight: 700;
+}
+.split .cell p { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: none; }
+
+/* inline code */
+code {
+  background: var(--code-bg);
+  border: 1px solid var(--border-soft);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  font-size: 0.88em;
+  color: var(--fg);
+  font-family: var(--mono);
+}
+code.danger { color: var(--danger); }
+
+/* ---- Architecture diagram ---------------------------------------------- */
+.diagram {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.4rem 1.5rem;
+  overflow-x: auto;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--muted);
+  white-space: pre;
+  font-family: var(--mono);
+}
+.caption { color: var(--faint); font-size: 0.85rem; margin-top: 0.9rem; }
+
+/* ---- Latency table ------------------------------------------------------ */
 .latency-table {
   border-collapse: collapse;
   width: 100%;
   font-size: 0.88rem;
-  margin: 1rem 0 1.5rem;
+  margin-top: 0.5rem;
 }
-
-.latency-table th,
-.latency-table td {
+.latency-table th, .latency-table td {
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: 0.65rem 0.85rem;
   border-bottom: 1px solid var(--border);
+  vertical-align: top;
 }
-
 .latency-table th {
   color: var(--accent);
-  font-weight: 600;
-  border-bottom: 1px solid var(--accent);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--accent-dim);
+}
+.latency-table tbody tr:hover td { background: rgba(255,255,255,0.018); }
+.latency-table tr:last-child td { border-bottom: none; }
+.latency-table .lat { color: var(--accent); font-weight: 600; }
+.latency-table td .tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 0.4em;
+  margin-left: 0.4rem;
 }
 
-.latency-table tr:last-child td {
-  border-bottom: none;
-}
-
-/* ---- Install code block -------------------------------------------------- */
+/* ---- Install code block ------------------------------------------------- */
 .code-block {
   position: relative;
-  margin: 1.25rem 0;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.5rem 0 1.1rem;
 }
-
 .code-block pre {
   margin: 0;
+  padding: 1.3rem 1.5rem;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.85;
+  font-family: var(--mono);
+  white-space: pre;
 }
-
+.code-block .cl { color: var(--accent); user-select: none; }
 .copy-btn {
   position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
+  top: 0.7rem;
+  right: 0.7rem;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--muted);
-  padding: 0.25rem 0.65rem;
-  font-size: 0.75rem;
-  font-family: inherit;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.74rem;
+  font-family: var(--mono);
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: 4px;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-
-.copy-btn:hover,
-.copy-btn.copied {
+.copy-btn:hover, .copy-btn.copied {
   background: var(--accent);
-  color: var(--bg);
+  color: #1a1606;
   border-color: var(--accent);
 }
+.requirements-note { color: var(--faint); font-size: 0.84rem; }
+.requirements-note .sep { color: var(--border); margin: 0 0.5rem; }
 
-/* ---- Requirements note --------------------------------------------------- */
-.requirements-note {
-  color: var(--muted);
-  font-size: 0.82rem;
-  margin-top: 0.75rem;
-}
-
-/* ---- Footer -------------------------------------------------------------- */
+/* ---- Footer ------------------------------------------------------------- */
 footer {
-  border-top: 1px solid var(--border);
-  padding-top: 1.5rem;
-  margin-top: 2rem;
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.8;
-  max-width: 68ch;
-  margin-left: auto;
-  margin-right: auto;
+  border-top: 1px solid var(--border-soft);
+  margin-top: 5rem;
+  padding: 2.25rem 0 3rem;
+  color: var(--faint);
+  font-size: 0.83rem;
+  line-height: 1.85;
+}
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+footer .foot-row { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; align-items: center; }
+footer .sep { color: var(--border); }
+
+/* ---- Mobile ------------------------------------------------------------- */
+@media (max-width: 640px) {
+  html { font-size: 15px; }
+  .wrap { padding: 0 1.1rem; }
+  .nav-links { gap: 1rem; }
+  .hero { padding: 2.5rem 0 1.5rem; }
+  .split { grid-template-columns: 1fr; }
+  #demo-terminal { font-size: 0.8rem; padding: 1.1rem; }
+  .diagram { font-size: 0.6rem; }
+  .copy-btn { position: static; display: block; margin: 0 0.7rem 0.7rem auto; width: fit-content; }
+  .latency-table { font-size: 0.8rem; }
 }
 
-footer a {
-  color: var(--muted);
-}
-
-footer a:hover {
-  color: var(--accent);
-}
-
-/* ---- Mobile -------------------------------------------------------------- */
-@media (max-width: 600px) {
-  html {
-    font-size: 13px;
-  }
-
-  body {
-    padding: 0 1rem;
-  }
-
-  h1 {
-    font-size: 1.7rem;
-  }
-
-  pre {
-    font-size: 0.78rem;
-  }
-
-  #demo-terminal {
-    font-size: 0.82rem;
-    padding: 1rem;
-  }
-
-  .latency-table {
-    font-size: 0.78rem;
-  }
-
-  .copy-btn {
-    display: none;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .hero-wordmark .cursor, .demo-cursor { animation: none; }
+  html { scroll-behavior: auto; }
 }
