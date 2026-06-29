@@ -1,0 +1,288 @@
+/* termauto landing page — style.css */
+
+/* ---- Custom properties -------------------------------------------------- */
+:root {
+  --bg:       #0d0d0d;
+  --fg:       #e8e8e8;
+  --muted:    #888888;
+  --accent:   #c8b830;
+  --code-bg:  #171717;
+  --border:   #2a2a2a;
+}
+
+/* ---- Reset / base -------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
+  line-height: 1.7;
+  padding: 0 2rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Layout -------------------------------------------------------------- */
+main {
+  max-width: 68ch;
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+section {
+  margin-bottom: 3.5rem;
+}
+
+/* ---- Typography ---------------------------------------------------------- */
+h1 {
+  font-size: 2.2rem;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 1.2rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+}
+
+p {
+  margin-bottom: 1rem;
+  max-width: 60ch;
+}
+
+ul {
+  margin: 0.5rem 0 1rem 1.5rem;
+}
+
+li {
+  margin-bottom: 0.35rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  background: var(--code-bg);
+  padding: 0.15em 0.4em;
+  border-radius: 2px;
+  font-size: 0.9em;
+  color: var(--fg);
+  font-family: inherit;
+}
+
+/* ---- Terminal demo ------------------------------------------------------- */
+#demo-terminal {
+  background: var(--code-bg);
+  border-left: 3px solid var(--accent);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0 2rem;
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  min-height: 7rem;
+  overflow: hidden;
+  position: relative;
+  white-space: pre;
+}
+
+.demo-line {
+  display: block;
+}
+
+.demo-prompt {
+  color: var(--muted);
+}
+
+.demo-input {
+  color: var(--fg);
+}
+
+.demo-keypress {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.demo-thinking {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.demo-candidate {
+  color: var(--fg);
+  opacity: 0.55;
+}
+
+.demo-legend {
+  color: var(--muted);
+  opacity: 0.4;
+  font-size: 0.8rem;
+}
+
+.demo-accepted {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.demo-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  background: var(--fg);
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ---- Pre / architecture diagram ----------------------------------------- */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 1rem 0;
+  white-space: pre;
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
+}
+
+/* ---- Latency table ------------------------------------------------------- */
+.latency-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.88rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.latency-table th,
+.latency-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.latency-table th {
+  color: var(--accent);
+  font-weight: 600;
+  border-bottom: 1px solid var(--accent);
+}
+
+.latency-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---- Install code block -------------------------------------------------- */
+.code-block {
+  position: relative;
+  margin: 1.25rem 0;
+}
+
+.code-block pre {
+  margin: 0;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.copy-btn:hover,
+.copy-btn.copied {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+/* ---- Requirements note --------------------------------------------------- */
+.requirements-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 0.75rem;
+}
+
+/* ---- Footer -------------------------------------------------------------- */
+footer {
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.8;
+  max-width: 68ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+footer a {
+  color: var(--muted);
+}
+
+footer a:hover {
+  color: var(--accent);
+}
+
+/* ---- Mobile -------------------------------------------------------------- */
+@media (max-width: 600px) {
+  html {
+    font-size: 13px;
+  }
+
+  body {
+    padding: 0 1rem;
+  }
+
+  h1 {
+    font-size: 1.7rem;
+  }
+
+  pre {
+    font-size: 0.78rem;
+  }
+
+  #demo-terminal {
+    font-size: 0.82rem;
+    padding: 1rem;
+  }
+
+  .latency-table {
+    font-size: 0.78rem;
+  }
+
+  .copy-btn {
+    display: none;
+  }
+}

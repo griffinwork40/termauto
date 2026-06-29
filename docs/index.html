@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Local-first LLM shell completion for zsh on Apple Silicon.">
+<title>termauto — local-first LLM shell completion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="style.css">
+<script src="demo.js" defer></script>
+</head>
+<body>
+
+<main>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Hero                                                                -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="hero" aria-labelledby="hero-heading">
+    <h1 id="hero-heading">termauto</h1>
+    <p>Local-first LLM shell completion for zsh on Apple Silicon.<br>
+    Press <code>Ctrl-Space</code> at your prompt. Pick from 3&ndash;5 ranked candidates. Nothing leaves your Mac.</p>
+    <div id="demo-terminal" aria-label="Animated demo of termauto completion panel"></div>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Why not ghost text                                                  -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="safety" aria-labelledby="safety-heading">
+    <h2 id="safety-heading">Why not ghost text</h2>
+    <p>The cotabby pattern is ghost text + Tab. That works great for prose. It is a
+    <strong>footgun in a shell</strong>: a hallucinated <code>rm -rf</code> or
+    <code>git push --force</code> that you reflex-Tab-Enter before reading does real damage.</p>
+    <p>termauto separates <em>generation</em> from <em>commitment</em>:</p>
+    <ul>
+      <li><strong>Generation</strong> is fast and speculative. The daemon returns 3&ndash;5 candidates.</li>
+      <li><strong>Commitment</strong> is deliberate. You read, then press a number to accept.</li>
+      <li><code>$BUFFER is never mutated until you pick.</code></li>
+    </ul>
+    <p>Once you trust the model against your history and cwd corpus, a future
+    <code>--ghost</code> mode can be added as an additive rendering path. The daemon,
+    prompt schema, and ranker built here carry over unchanged.</p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- How it works                                                        -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="how-it-works" aria-labelledby="how-heading">
+    <h2 id="how-heading">How it works</h2>
+    <pre role="img" aria-label="Architecture diagram showing zsh widget and ghost strategy communicating with the termauto daemon over localhost:8765, which delegates to mlx-lm for inference.">&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;                          your zsh                            &#x2502;
+&#x2502;   &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;    &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x2502;
+&#x2502;   &#x2502; termauto.zsh widget  &#x2502;    &#x2502; termauto_ghost.zsh strategy&#x2502; &#x2502;
+&#x2502;   &#x2502;   Ctrl-Space &#x2192; panel &#x2502;    &#x2502;   typing &#x2192; autosuggest hook&#x2502; &#x2502;
+&#x2502;   &#x2502;   &#x2193; POSIX exec       &#x2502;    &#x2502;   &#x2193; curl                   &#x2502; &#x2502;
+&#x2502;   &#x2502;   termauto suggest&#x2026;  &#x2502;    &#x2502;   POST /suggest_inline     &#x2502; &#x2502;
+&#x2502;   &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;    &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+              &#x2502; HTTP localhost:8765      &#x2502;
+              &#x25BC;                          &#x25BC;
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;                      termauto daemon                         &#x2502;
+&#x2502;  FastAPI /complete         &#x2192; build_messages       (panel)    &#x2502;
+&#x2502;          /suggest_inline   &#x2192; build_inline_messages (ghost)   &#x2502;
+&#x2502;                              &#x2193;                               &#x2502;
+&#x2502;                            inference.py                      &#x2502;
+&#x2502;                              &#x251C;&#x2500; generate()       (blocking)  &#x2502;
+&#x2502;                              &#x251C;&#x2500; generate_stream() (streaming)&#x2502;
+&#x2502;                              &#x2514;&#x2500; mlx-lm (warm)                &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;</pre>
+    <p>The zsh widget and ghost strategy talk to the same local daemon over <code>localhost:8765</code>.
+    The daemon holds the model warm in memory so there is no cold-start penalty per request.</p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Local-first                                                         -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="privacy" aria-labelledby="privacy-heading">
+    <h2 id="privacy-heading">Local-first</h2>
+    <p>Nothing leaves your Mac. Inference runs on-device via
+    <a href="https://github.com/ml-explore/mlx">MLX</a> on Apple Silicon.
+    The daemon binds to <code>127.0.0.1:8765</code> and never dials out.
+    Your shell history, working directory, and commands are never transmitted anywhere.</p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Latency                                                             -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="latency" aria-labelledby="latency-heading">
+    <h2 id="latency-heading">Latency on M-series</h2>
+    <table class="latency-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Size</th>
+          <th>Latency</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Qwen3-1.7B-4bit</code> (default)</td>
+          <td>~1GB</td>
+          <td>~600ms</td>
+          <td>Newer generation, good diversity</td>
+        </tr>
+        <tr>
+          <td><code>Qwen2.5-Coder-1.5B-Instruct-4bit</code></td>
+          <td>~900MB</td>
+          <td>~580ms</td>
+          <td>Code-tuned, reliable 3&ndash;5 candidates</td>
+        </tr>
+        <tr>
+          <td><code>Qwen3-0.6B-4bit</code></td>
+          <td>~400MB</td>
+          <td>~300ms</td>
+          <td>Faster but quality drops noticeably</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Install                                                             -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="install" aria-labelledby="install-heading">
+    <h2 id="install-heading">Install</h2>
+    <div class="code-block">
+      <pre><code>git clone https://github.com/griffinwork40/termauto termauto
+cd termauto
+./install.sh
+termauto start</code></pre>
+      <button class="copy-btn" aria-label="Copy install commands to clipboard">Copy</button>
+    </div>
+    <p class="requirements-note">macOS Apple Silicon &nbsp;&middot;&nbsp; zsh 5.1+ &nbsp;&middot;&nbsp; Python 3.10+ &nbsp;&middot;&nbsp; ~1GB disk</p>
+  </section>
+
+</main>
+
+<footer>
+  <a href="https://github.com/griffinwork40/termauto">github.com/griffinwork40/termauto</a> &nbsp;&middot;&nbsp;
+  MIT &nbsp;&middot;&nbsp; v0.2<br>
+  Inspired by <a href="https://github.com/FuJacob/cotabby">cotabby</a> (AGPL-3.0). termauto shares no source code with cotabby.
+</footer>
+
+<script>
+(function () {
+  var btn = document.querySelector('.copy-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var code = btn.closest('.code-block').querySelector('code');
+    navigator.clipboard.writeText(code.textContent).then(function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function () {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
