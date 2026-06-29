@@ -23,3 +23,5 @@ build/
 node_modules/
 package-lock.json
 package.json
+.afk-worktrees/
+.vercel
