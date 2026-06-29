@@ -92,27 +92,62 @@
   <!-- ---------------------------------------------------------------- -->
   <section id="how-it-works" class="section" aria-labelledby="how-heading">
     <div class="section-label" id="how-heading">How it works</div>
-    <pre class="diagram" role="img" aria-label="Architecture diagram: the termauto.zsh widget and the termauto_ghost.zsh strategy both talk to the termauto daemon over HTTP on localhost:8765. The daemon exposes FastAPI routes /complete and /suggest_inline, which call inference.py, which runs mlx-lm held warm in memory.">&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
-&#x2502;                          your zsh                            &#x2502;
-&#x2502;   &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;    &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x2502;
-&#x2502;   &#x2502; termauto.zsh widget  &#x2502;    &#x2502; termauto_ghost.zsh strategy&#x2502; &#x2502;
-&#x2502;   &#x2502;   Ctrl-Space &#x2192; panel &#x2502;    &#x2502;   typing &#x2192; autosuggest hook&#x2502; &#x2502;
-&#x2502;   &#x2502;   &#x2193; POSIX exec       &#x2502;    &#x2502;   &#x2193; curl                   &#x2502; &#x2502;
-&#x2502;   &#x2502;   termauto suggest&#x2026;  &#x2502;    &#x2502;   POST /suggest_inline     &#x2502; &#x2502;
-&#x2502;   &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;    &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2502;
-&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
-              &#x2502; HTTP localhost:8765      &#x2502;
-              &#x25BC;                          &#x25BC;
-&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
-&#x2502;                      termauto daemon                         &#x2502;
-&#x2502;  FastAPI /complete         &#x2192; build_messages       (panel)    &#x2502;
-&#x2502;          /suggest_inline   &#x2192; build_inline_messages (ghost)   &#x2502;
-&#x2502;                              &#x2193;                               &#x2502;
-&#x2502;                            inference.py                      &#x2502;
-&#x2502;                              &#x251C;&#x2500; generate()       (blocking)  &#x2502;
-&#x2502;                              &#x251C;&#x2500; generate_stream() (streaming)&#x2502;
-&#x2502;                              &#x2514;&#x2500; mlx-lm (warm)                &#x2502;
-&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;</pre>
+    <div class="arch" role="img" aria-label="Architecture diagram: the termauto.zsh widget and the termauto_ghost.zsh strategy both talk to the termauto daemon over HTTP on localhost:8765. The daemon exposes FastAPI routes /complete and /suggest_inline, which call inference.py, which runs mlx-lm held warm in memory.">
+
+      <!-- your zsh shell -->
+      <div class="arch-shell">
+        <span class="arch-shell-label">your zsh</span>
+        <div class="arch-shell-row">
+          <div class="arch-card">
+            <div class="arch-card-name">termauto.zsh widget</div>
+            <div class="arch-card-line"><kbd class="arch-key">Ctrl-Space</kbd> &rarr; panel</div>
+            <div class="arch-card-line arch-dim">&darr; POSIX exec</div>
+            <div class="arch-card-line arch-dim">termauto suggest&hellip;</div>
+          </div>
+          <div class="arch-card">
+            <div class="arch-card-name">termauto_ghost.zsh</div>
+            <div class="arch-card-line">typing &rarr; autosuggest</div>
+            <div class="arch-card-line arch-dim">&darr; curl</div>
+            <div class="arch-card-line arch-dim">POST /suggest_inline</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- connector -->
+      <div class="arch-conn">
+        <span class="arch-conn-label">HTTP localhost:8765</span>
+        <div class="arch-conn-arrows"><span>&darr;</span><span>&darr;</span></div>
+      </div>
+
+      <!-- daemon -->
+      <div class="arch-daemon">
+        <div class="arch-daemon-title">termauto daemon</div>
+        <div class="arch-routes">
+          <div class="arch-route-row">
+            <span class="arch-route">FastAPI&nbsp;/complete</span>
+            <span class="arch-rarrow">&rarr;</span>
+            <span class="arch-target">build_messages</span>
+            <span class="arch-badge">panel</span>
+          </div>
+          <div class="arch-route-row">
+            <span class="arch-route">/suggest_inline</span>
+            <span class="arch-rarrow">&rarr;</span>
+            <span class="arch-target">build_inline_messages</span>
+            <span class="arch-badge">ghost</span>
+          </div>
+        </div>
+        <div class="arch-infer">
+          <div class="arch-infer-arrow">&darr;</div>
+          <div class="arch-infer-name">inference.py</div>
+          <div class="arch-tree">
+            <div class="arch-tree-row"><span class="arch-branch">&#x251C;&hairsp;&mdash;</span> generate() <span class="arch-badge">blocking</span></div>
+            <div class="arch-tree-row"><span class="arch-branch">&#x251C;&hairsp;&mdash;</span> generate_stream() <span class="arch-badge">streaming</span></div>
+            <div class="arch-tree-row"><span class="arch-branch">&#x2514;&hairsp;&mdash;</span> mlx-lm <span class="arch-badge arch-badge-warm">warm</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
     <p class="caption">The widget and the ghost strategy talk to one local daemon over <code>localhost:8765</code>. The model is held warm in memory &mdash; no cold-start penalty per request.</p>
   </section>
 
