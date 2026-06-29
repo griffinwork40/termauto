@@ -32,12 +32,10 @@
     <p>The cotabby pattern is ghost text + Tab. That works great for prose. It is a
     <strong>footgun in a shell</strong>: a hallucinated <code>rm -rf</code> or
     <code>git push --force</code> that you reflex-Tab-Enter before reading does real damage.</p>
-    <p>termauto separates <em>generation</em> from <em>commitment</em>:</p>
-    <ul>
-      <li><strong>Generation</strong> is fast and speculative. The daemon returns 3&ndash;5 candidates.</li>
-      <li><strong>Commitment</strong> is deliberate. You read, then press a number to accept.</li>
-      <li><code>$BUFFER is never mutated until you pick.</code></li>
-    </ul>
+    <p>termauto separates <em>generation</em> from <em>commitment</em>.
+    <strong>Generation</strong> is fast and speculative — the daemon returns 3&ndash;5 candidates.
+    <strong>Commitment</strong> is deliberate — you read, then press a number to accept.
+    <code>$BUFFER is never mutated until you pick.</code></p>
     <p>Once you trust the model against your history and cwd corpus, a future
     <code>--ghost</code> mode can be added as an additive rendering path. The daemon,
     prompt schema, and ranker built here carry over unchanged.</p>
